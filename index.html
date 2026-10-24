@@ -1,0 +1,518 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <title>Renk Körlüğü Testi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 1.5rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .screen.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .svg-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            background-color: #1d4ed8;
+        }
+        .btn:disabled {
+            background-color: #93c5fd;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #e5e7eb;
+            border-radius: 3px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #2563eb;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <header>
+        <h1 class="text-xl font-bold">Renk Körlüğü Testi</h1>
+    </header>
+
+    <div id="screen-home" class="screen active justify-center items-center text-center">
+        <div class="mb-8 text-blue-600">
+            <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Görme Yeteneğinizi Test Edin</h2>
+        <p class="text-gray-600 mb-8 px-4">Bu test, farklı renk körlüğü türlerini tespit etmek için tasarlanmış 10 aşamalı rastgele oluşturulmuş görsellerden oluşmaktadır. Ezberlenemez!</p>
+        <ul class="text-left text-sm text-gray-600 mb-8 space-y-2 w-full px-6">
+            <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 5 dokunmatik tespit sorusu</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 5 rakam tanıma sorusu</li>
+            <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Klinik sonuç analizi</li>
+        </ul>
+        <button onclick="startTest()" class="btn">Testi Başlat</button>
+    </div>
+
+    <div id="screen-test" class="screen">
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <h3 id="question-counter" class="text-sm font-semibold text-gray-500 mb-2">Soru 1 / 10</h3>
+        <p id="instruction" class="text-lg font-bold text-gray-800 mb-4 text-center">Farklı renkteki alana dokunun.</p>
+        
+        <div class="svg-container">
+            <svg id="test-svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+
+        <div id="number-input-container" class="hidden flex-col items-center w-full mt-4">
+            <input type="number" id="number-input" placeholder="Gördüğünüz sayıyı girin" 
+                   class="w-full p-4 border-2 border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all mb-4" 
+                   inputmode="numeric" oninput="checkInput()">
+            <button id="submit-btn" onclick="submitNumber()" class="btn" disabled>Yanıtla</button>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen justify-center items-center text-center">
+        <div id="result-icon" class="mb-6"></div>
+        <h2 id="result-title" class="text-2xl font-bold text-gray-800 mb-2">Sonuçlar Yükleniyor...</h2>
+        <p id="result-desc" class="text-gray-600 mb-6 px-4">Test analiziniz yapılıyor.</p>
+        
+        <div class="w-full bg-gray-50 rounded-xl p-4 mb-8 border border-gray-200 shadow-sm text-left">
+            <h4 class="font-semibold text-gray-700 mb-4 border-b pb-2">Hata Analizi</h4>
+            
+            <div class="mb-3">
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">Kırmızı-Yeşil (Protan/Deutan)</span>
+                    <span id="score-rg" class="font-bold text-gray-800">0/0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="bar-rg" class="bg-red-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">Mavi-Sarı (Tritanopia)</span>
+                    <span id="score-by" class="font-bold text-gray-800">0/0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="bar-by" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-600">Tam Renk Körlüğü (Achromatopsia)</span>
+                    <span id="score-tot" class="font-bold text-gray-800">0/0</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="bar-tot" class="bg-gray-600 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="resetTest()" class="btn bg-gray-800 hover:bg-gray-900 shadow-none">Testi Tekrarla</button>
+    </div>
+</div>
+
+<script>
+    const font3x5 = {
+        '0': [[1,1,1],[1,0,1],[1,0,1],[1,0,1],[1,1,1]],
+        '1': [[0,1,0],[1,1,0],[0,1,0],[0,1,0],[1,1,1]],
+        '2': [[1,1,1],[0,0,1],[1,1,1],[1,0,0],[1,1,1]],
+        '3': [[1,1,1],[0,0,1],[1,1,1],[0,0,1],[1,1,1]],
+        '4': [[1,0,1],[1,0,1],[1,1,1],[0,0,1],[0,0,1]],
+        '5': [[1,1,1],[1,0,0],[1,1,1],[0,0,1],[1,1,1]],
+        '6': [[1,1,1],[1,0,0],[1,1,1],[1,0,1],[1,1,1]],
+        '7': [[1,1,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]],
+        '8': [[1,1,1],[1,0,1],[1,1,1],[1,0,1],[1,1,1]],
+        '9': [[1,1,1],[1,0,1],[1,1,1],[0,0,1],[1,1,1]]
+    };
+
+    const palettes = [
+        {
+            type: 'redGreen',
+            name: 'Kırmızı-Yeşil',
+            bg: ['#8cb87c', '#b1c172', '#739b60', '#9eb065', '#a4c282', '#6b8e59'],
+            target: ['#d97c55', '#e29062', '#c96547', '#d07e5b', '#e8a176', '#bd5a3d']
+        },
+        {
+            type: 'blueYellow',
+            name: 'Mavi-Sarı',
+            bg: ['#5b94a3', '#7ba8b2', '#4a8393', '#8eb6bf', '#658d99', '#3f7282'],
+            target: ['#d99595', '#e5a8a8', '#c48282', '#e6b9b9', '#cc8f8f', '#b37676']
+        },
+        {
+            type: 'total',
+            name: 'Tam Renk Körlüğü',
+            bg: ['#a37c7c', '#ad8787', '#997373', '#b89494', '#8f6868'],
+            target: ['#7ca37c', '#87ad87', '#739973', '#94b894', '#688f68']
+        }
+    ];
+
+    let currentQuestion = 0;
+    const totalQuestions = 10;
+    let questions = []; 
+    let scoreData = {
+        redGreen: { total: 0, mistakes: 0 },
+        blueYellow: { total: 0, mistakes: 0 },
+        total: { total: 0, mistakes: 0 }
+    };
+    let currentTargetShape = null;
+
+    const screens = {
+        home: document.getElementById('screen-home'),
+        test: document.getElementById('screen-test'),
+        result: document.getElementById('screen-result')
+    };
+    const svgElement = document.getElementById('test-svg');
+    const instructionEl = document.getElementById('instruction');
+    const numberInputContainer = document.getElementById('number-input-container');
+    const numberInput = document.getElementById('number-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressFill = document.getElementById('progress-fill');
+    const questionCounter = document.getElementById('question-counter');
+
+    function showScreen(screenId) {
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[screenId].classList.add('active');
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function generateQuestions() {
+        let qs = [];
+        for (let i = 0; i < 5; i++) qs.push({ mode: 'touch' });
+        for (let i = 0; i < 5; i++) qs.push({ mode: 'number' });
+        
+        const paletteTypes = ['redGreen', 'blueYellow', 'total', 'redGreen', 'redGreen', 'blueYellow', 'total', 'redGreen', 'blueYellow', 'total'];
+        shuffle(paletteTypes);
+
+        qs.forEach((q, index) => {
+            q.palette = palettes.find(p => p.type === paletteTypes[index]);
+            if (q.mode === 'number') {
+                q.answer = randomInt(1, 99).toString();
+            } else {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = randomInt(40, 110);
+                q.target = {
+                    cx: 200 + Math.cos(angle) * distance,
+                    cy: 200 + Math.sin(angle) * distance,
+                    r: randomInt(45, 65)
+                };
+            }
+        });
+        return qs;
+    }
+
+    function isInsideDigit(x, y, digitStr, offsetX, offsetY, scaleX, scaleY) {
+        const matrix = font3x5[digitStr];
+        if (!matrix) return false;
+        
+        const relX = Math.floor((x - offsetX) / scaleX);
+        const relY = Math.floor((y - offsetY) / scaleY);
+
+        if (relY >= 0 && relY < 5 && relX >= 0 && relX < 3) {
+            return matrix[relY][relX] === 1;
+        }
+        return false;
+    }
+
+    function drawSVGPlate(question) {
+        svgElement.innerHTML = '';
+        const width = 400;
+        const height = 400;
+        const mainRadius = 190;
+        const step = 14;
+        
+        let circles = '';
+        
+        for (let x = 10; x < width; x += step) {
+            for (let y = 10; y < height; y += step) {
+                let cx = x + (Math.random() - 0.5) * 10;
+                let cy = y + (Math.random() - 0.5) * 10;
+                
+                let distToCenter = Math.hypot(cx - 200, cy - 200);
+                if (distToCenter > mainRadius) continue;
+
+                let isTarget = false;
+                
+                if (question.mode === 'touch') {
+                    let distToTarget = Math.hypot(cx - question.target.cx, cy - question.target.cy);
+                    if (distToTarget < question.target.r) {
+                        isTarget = true;
+                    }
+                } else if (question.mode === 'number') {
+                    const numStr = question.answer;
+                    const scaleX = 22;
+                    const scaleY = 30;
+                    
+                    if (numStr.length === 1) {
+                        const offsetX = 200 - (1.5 * scaleX);
+                        const offsetY = 200 - (2.5 * scaleY);
+                        isTarget = isInsideDigit(cx, cy, numStr, offsetX, offsetY, scaleX, scaleY);
+                    } else {
+                        const gap = 15;
+                        const totalWidth = (3 * scaleX * 2) + gap;
+                        const offset1X = 200 - (totalWidth / 2);
+                        const offsetY = 200 - (2.5 * scaleY);
+                        const offset2X = offset1X + (3 * scaleX) + gap;
+                        
+                        isTarget = isInsideDigit(cx, cy, numStr[0], offset1X, offsetY, scaleX, scaleY) || 
+                                   isInsideDigit(cx, cy, numStr[1], offset2X, offsetY, scaleX, scaleY);
+                    }
+                }
+
+                const colorArray = isTarget ? question.palette.target : question.palette.bg;
+                const color = colorArray[Math.floor(Math.random() * colorArray.length)];
+                const r = 3.5 + Math.random() * 4.5;
+                
+                circles += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" />`;
+            }
+        }
+        svgElement.innerHTML = circles;
+    }
+
+    function startTest() {
+        scoreData = {
+            redGreen: { total: 0, mistakes: 0 },
+            blueYellow: { total: 0, mistakes: 0 },
+            total: { total: 0, mistakes: 0 }
+        };
+        questions = generateQuestions();
+        currentQuestion = 0;
+        showScreen('test');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        
+        progressFill.style.width = `${((currentQuestion) / totalQuestions) * 100}%`;
+        questionCounter.innerText = `Soru ${currentQuestion + 1} / ${totalQuestions}`;
+        
+        drawSVGPlate(q);
+        
+        if (q.mode === 'touch') {
+            instructionEl.innerText = "Farklı renkteki şekle/alana dokunun.";
+            numberInputContainer.classList.add('hidden');
+            numberInputContainer.classList.remove('flex');
+            currentTargetShape = q.target;
+        } else {
+            instructionEl.innerText = "Görselde gizli olan sayıyı girin.";
+            numberInputContainer.classList.remove('hidden');
+            numberInputContainer.classList.add('flex');
+            numberInput.value = '';
+            submitBtn.disabled = true;
+            currentTargetShape = null;
+        }
+    }
+
+    svgElement.addEventListener('click', (e) => {
+        if (questions[currentQuestion].mode !== 'touch') return;
+        
+        const q = questions[currentQuestion];
+        const rect = svgElement.getBoundingClientRect();
+        
+        const scaleX = 400 / rect.width;
+        const scaleY = 400 / rect.height;
+        
+        const clickX = (e.clientX - rect.left) * scaleX;
+        const clickY = (e.clientY - rect.top) * scaleY;
+        
+        const dist = Math.hypot(clickX - q.target.cx, clickY - q.target.cy);
+        const isCorrect = dist <= (q.target.r + 20); 
+        
+        handleAnswer(isCorrect);
+    });
+
+    function checkInput() {
+        submitBtn.disabled = numberInput.value.trim().length === 0;
+    }
+
+    function submitNumber() {
+        const q = questions[currentQuestion];
+        const isCorrect = numberInput.value.trim() === q.answer;
+        
+        numberInput.blur(); 
+        handleAnswer(isCorrect);
+    }
+
+    function handleAnswer(isCorrect) {
+        const q = questions[currentQuestion];
+        const pType = q.palette.type;
+        
+        scoreData[pType].total += 1;
+        if (!isCorrect) {
+            scoreData[pType].mistakes += 1;
+        }
+        
+        svgElement.style.opacity = '0.5';
+        setTimeout(() => {
+            svgElement.style.opacity = '1';
+            currentQuestion++;
+            if (currentQuestion < totalQuestions) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }, 150);
+    }
+
+    function showResults() {
+        progressFill.style.width = `100%`;
+        showScreen('result');
+        
+        const rg = scoreData.redGreen;
+        const by = scoreData.blueYellow;
+        const tot = scoreData.total;
+        
+        document.getElementById('score-rg').innerText = `${rg.mistakes} Hata / ${rg.total}`;
+        document.getElementById('bar-rg').style.width = `${(rg.mistakes / rg.total) * 100}%`;
+        
+        document.getElementById('score-by').innerText = `${by.mistakes} Hata / ${by.total}`;
+        document.getElementById('bar-by').style.width = `${(by.mistakes / by.total) * 100}%`;
+        
+        document.getElementById('score-tot').innerText = `${tot.mistakes} Hata / ${tot.total}`;
+        document.getElementById('bar-tot').style.width = `${(tot.mistakes / tot.total) * 100}%`;
+        
+        const titleEl = document.getElementById('result-title');
+        const descEl = document.getElementById('result-desc');
+        const iconEl = document.getElementById('result-icon');
+        
+        let diagnosis = [];
+        if (rg.mistakes >= 2) diagnosis.push("Kırmızı-Yeşil Renk Körlüğü (Protan/Deutan)");
+        if (by.mistakes >= 2) diagnosis.push("Mavi-Sarı Renk Körlüğü (Tritanopia)");
+        if (tot.mistakes >= 2) diagnosis.push("Tam Renk Körlüğü Belirtisi");
+
+        if (diagnosis.length === 0) {
+            titleEl.innerText = "Normal Görme";
+            titleEl.className = "text-2xl font-bold text-green-600 mb-2";
+            descEl.innerText = "Tebrikler! Test sonuçlarına göre renkli görme yeteneğiniz gayet normal görünüyor. Herhangi bir renk körlüğü belirtisine rastlanmadı.";
+            iconEl.innerHTML = `<svg class="w-20 h-20 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        } else {
+            titleEl.innerText = "Renk Körlüğü Şüphesi";
+            titleEl.className = "text-2xl font-bold text-red-600 mb-2";
+            descEl.innerText = `Test sonuçlarınıza göre aşağıdaki durum(lar)dan şüphelenilmektedir:\n\n${diagnosis.join(', ')}.\n\nKesin tanı için lütfen bir göz doktoruna başvurun.`;
+            iconEl.innerHTML = `<svg class="w-20 h-20 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        }
+    }
+
+    function resetTest() {
+        showScreen('home');
+    }
+
+    numberInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !submitBtn.disabled) {
+            submitNumber();
+        }
+    });
+
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((registration) => {
+          console.log('Service Worker başarıyla kaydedildi:', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Service Worker kaydı başarısız oldu:', error);
+        });
+    });
+  }
+</script>
+</body>
+</html>
